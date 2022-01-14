@@ -8,13 +8,13 @@ namespace Decoder
     // The values within WorkingParams can change during the experiments. 
     class WorkingParams
     {
-        public const string studentNumberOne = ""; // This must be filled.
-        public const string studentNumberTwo = ""; // This must be filled. Keep it "" if you are working alone.
-        public const string classNumber = "INF2A"; // This must be filled. INF2A is just an example.
+        public const string studentNumberOne = "101157"; // This must be filled.
+        public const string studentNumberTwo = "1000174"; // This must be filled. Keep it "" if you are working alone.
+        public const string classNumber = "INF2C"; // This must be filled. INF2A is just an example.
 
         public const int numOfWorkers = 40; // how many workers are needed to keep the max size of the shared buffer between 50 - 100?
         public const int minSendIntervalTime = 50; // min sending interval time (in msec) by the provider
-        public const int maxSendIntervalTime = 500; // max sending interval time (in msec) by the provider
+        public const int maxSendIntervalTime = 100; // max sending interval time (in msec) by the provider
     }
 
     // The values of FixedParams must not change in the final submission.
@@ -45,7 +45,7 @@ namespace Decoder
             Stopwatch conSW = new Stopwatch();
 
             seqSW.Start();
-            new Launch().SequentialTaskExecution();
+            //new Launch().SequentialTaskExecution();
             seqSW.Stop();
 
             TimeSpan seqET = seqSW.Elapsed;
