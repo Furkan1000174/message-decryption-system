@@ -33,18 +33,20 @@ namespace ConcDecoder
             provider_sem.WaitOne();
 
             lock(mutex){
-                this.taskBuffer.Enqueue(task);
-                this.numOfTasks++;
-                this.maxBuffSize = this.taskBuffer.Count > this.maxBuffSize ? this.taskBuffer.Count  : this.maxBuffSize;
-                if(taskBuffer.Count > 0)
+                    if(this.taskBuffer.Count > 90){
+                        Thread.Sleep(new Random().Next(500, 1000));
+                    }
+                    this.taskBuffer.Enqueue(task);
+                    this.numOfTasks++;
+                    this.maxBuffSize = this.taskBuffer.Count > this.maxBuffSize ? this.taskBuffer.Count  : this.maxBuffSize;
                     try{ this.worker_sem.Release();}
                     catch { }
-                if(taskBuffer.Count < FixedParams.maxNumOfChallenges)
+
                     try{ this.provider_sem.Release();}
                     catch{ }
-                    
-                this.LogVisualisation();
-                this.PrintBufferSize();
+                        
+                    this.LogVisualisation();
+                    this.PrintBufferSize();
             }
         }
 
@@ -59,13 +61,14 @@ namespace ConcDecoder
             worker_sem.WaitOne();
 
             lock(mutex){
+                if(this.maxBuffSize > 50){
                 t = base.GetNextTask();
-                if(taskBuffer.Count < FixedParams.maxNumOfChallenges)
-                    try{this.provider_sem.Release();}
-                    catch{ }
-                if(taskBuffer.Count > 0)
-                    try{this.worker_sem.Release();}
-                    catch{ }
+                try{this.provider_sem.Release();}
+                catch{ }
+
+                try{this.worker_sem.Release();}
+                catch{ }
+                }
             }
             //this.worker_sem.Release();
             return t;
