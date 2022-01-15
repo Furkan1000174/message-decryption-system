@@ -30,12 +30,21 @@ namespace ConcDecoder
         public override void AddTask(TaskDecryption task)
         {
             //todo: implement this method such that satisfies a thread safe shared buffer.
+            provider_sem.WaitOne();
+
             lock(mutex){
-            this.taskBuffer.Enqueue(task);
-            this.numOfTasks++;
-            this.maxBuffSize = this.taskBuffer.Count > this.maxBuffSize ? this.taskBuffer.Count  : this.maxBuffSize;
-            this.LogVisualisation();
-            this.PrintBufferSize();
+                this.taskBuffer.Enqueue(task);
+                this.numOfTasks++;
+                this.maxBuffSize = this.taskBuffer.Count > this.maxBuffSize ? this.taskBuffer.Count  : this.maxBuffSize;
+                if(taskBuffer.Count > 0)
+                    try{ this.worker_sem.Release();}
+                    catch { }
+                if(taskBuffer.Count < FixedParams.maxNumOfChallenges)
+                    try{ this.provider_sem.Release();}
+                    catch{ }
+                    
+                this.LogVisualisation();
+                this.PrintBufferSize();
             }
         }
 
@@ -47,17 +56,18 @@ namespace ConcDecoder
         {
             //todo: implement this method such that satisfies a thread safe shared buffer.
             TaskDecryption t = null;
+            worker_sem.WaitOne();
+
             lock(mutex){
-            if (this.taskBuffer.Count > 0)
-            {
-                t = this.taskBuffer.Dequeue();
-                // check if the task is the last ending task: put the task back.
-                // It is an indication to terminate processors
-                if (t.id < 0)
-                    this.taskBuffer.Enqueue(t);
+                t = base.GetNextTask();
+                if(taskBuffer.Count < FixedParams.maxNumOfChallenges)
+                    try{this.provider_sem.Release();}
+                    catch{ }
+                if(taskBuffer.Count > 0)
+                    try{this.worker_sem.Release();}
+                    catch{ }
             }
             //this.worker_sem.Release();
-            }
             return t;
         }
 
