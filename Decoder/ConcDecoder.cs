@@ -33,20 +33,21 @@ namespace ConcDecoder
             provider_sem.WaitOne();
 
             lock(mutex){
-                    if(this.taskBuffer.Count > 90){
-                        Thread.Sleep(new Random().Next(500, 1000));
-                    }
-                    this.taskBuffer.Enqueue(task);
-                    this.numOfTasks++;
-                    this.maxBuffSize = this.taskBuffer.Count > this.maxBuffSize ? this.taskBuffer.Count  : this.maxBuffSize;
+                this.taskBuffer.Enqueue(task);
+                this.numOfTasks++;
+                this.maxBuffSize = this.taskBuffer.Count > this.maxBuffSize ? this.taskBuffer.Count  : this.maxBuffSize;
+                if(taskBuffer.Count > 0)
+                {
                     try{ this.worker_sem.Release();}
                     catch { }
-
+                }
+                if(taskBuffer.Count < FixedParams.maxNumOfChallenges)
+                {
                     try{ this.provider_sem.Release();}
                     catch{ }
-                        
-                    this.LogVisualisation();
-                    this.PrintBufferSize();
+                }
+                this.LogVisualisation();
+                this.PrintBufferSize();
             }
         }
 
@@ -61,14 +62,17 @@ namespace ConcDecoder
             worker_sem.WaitOne();
 
             lock(mutex){
-                if(this.maxBuffSize > 50){
-                t = base.GetNextTask();
-                try{this.provider_sem.Release();}
-                catch{ }
-
-                try{this.worker_sem.Release();}
-                catch{ }
-                }
+                    t = base.GetNextTask();
+                    if(taskBuffer.Count < FixedParams.maxNumOfChallenges)
+                    {
+                        try{this.provider_sem.Release();}
+                        catch{ }
+                    }
+                    if(taskBuffer.Count > 0)
+                    {
+                        try{this.worker_sem.Release();}
+                        catch{ }
+                    }   
             }
             //this.worker_sem.Release();
             return t;
@@ -116,14 +120,13 @@ namespace ConcDecoder
                 //threads.AddFirst(new Thread(providers[i].SendTasks));
                 Thread provider = new Thread(providers[i].SendTasks);
                 threads.AddFirst(provider);
+                provider.Start();
             }
             for (int i = 0; i < numOfWorkers; i++)
             {
                 Thread worker = new Thread(workers[i].ExecuteTasks);
                 threads.AddFirst(worker);
-            }
-            foreach (Thread t in threads){
-                t.Start();
+                worker.Start();
             }
             
             Thread.Sleep(500);
