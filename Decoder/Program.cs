@@ -45,7 +45,7 @@ namespace Decoder
             Stopwatch conSW = new Stopwatch();
 
             seqSW.Start();
-            //new Launch().SequentialTaskExecution();
+            new Launch().SequentialTaskExecution();
             seqSW.Stop();
 
             TimeSpan seqET = seqSW.Elapsed;
