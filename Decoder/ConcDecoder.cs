@@ -74,7 +74,6 @@ namespace ConcDecoder
                         catch{ }
                     }   
             }
-            //this.worker_sem.Release();
             return t;
         }
 
@@ -117,7 +116,6 @@ namespace ConcDecoder
 
             for (int i = 0; i < numOfProviders; i++)
             {
-                //threads.AddFirst(new Thread(providers[i].SendTasks));
                 Thread provider = new Thread(providers[i].SendTasks);
                 threads.AddFirst(provider);
                 provider.Start();
